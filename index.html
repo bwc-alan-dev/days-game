@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pen</title>
+  </head>
+  <body>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Days of the Week - English & Chinese Challenge</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: #f0f4f8;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .game-container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header & Stats */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #edf2f7;
+    }
+
+    .hearts {
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+
+    .stage-badge {
+      background: #4a90e2;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .score-display {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    /* Timer Bar */
+    .timer-container {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      overflow: hidden;
+      display: none;
+    }
+
+    .timer-bar {
+      height: 100%;
+      width: 100%;
+      background: #48bb78;
+      transition: width 0.1s linear, background-color 0.3s ease;
+    }
+
+    /* Common Card Styling */
+    .instructions {
+      text-align: center;
+      font-size: 15px;
+      color: #4a5568;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    /* Stage 1 Layout */
+    .match-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .card.selected {
+      border-color: #3182ce;
+      background: #ebf8ff;
+      transform: scale(1.02);
+    }
+
+    .card.matched {
+      background: #c6f6d5;
+      border-color: #38a169;
+      color: #22543d;
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    .card.wrong {
+      background: #fed7d7;
+      border-color: #e53e3e;
+      color: #742a2a;
+    }
+
+    /* Stage 2 (MC) Layout */
+    .prompt-card {
+      background: #edf2f7;
+      border-radius: 16px;
+      padding: 25px 15px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .chinese-prompt {
+      font-size: 36px;
+      font-weight: bold;
+      color: #2d3748;
+    }
+
+    .mc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mc-btn {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 15px 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mc-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Stage 3 (Speller & Touch Keyboard) */
+    .speller-display {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .letter-slot {
+      width: 28px;
+      height: 40px;
+      border-bottom: 3px solid #cbd5e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #2d3748;
+      text-transform: uppercase;
+    }
+
+    .letter-slot.filled {
+      border-bottom-color: #3182ce;
+    }
+
+    .keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .kb-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .key {
+      background: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 0;
+      flex: 1;
+      max-width: 38px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #2d3748;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 0 #cbd5e0;
+      transition: background 0.1s;
+    }
+
+    .key:active {
+      transform: translateY(2px);
+      box-shadow: none;
+      background: #cbd5e0;
+    }
+
+    .key-wide {
+      max-width: 65px;
+      font-size: 12px;
+      background: #cbd5e0;
+    }
+
+    /* Modal Screens (Stage Victory / Game Over) */
+    .modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+      text-align: center;
+      z-index: 10;
+      display: none;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2d3748;
+    }
+
+    .modal-desc {
+      font-size: 14px;
+      color: #718096;
+      margin-bottom: 20px;
+    }
+
+    /* Victory Graph */
+    .stats-chart {
+      width: 100%;
+      max-width: 300px;
+      background: #edf2f7;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .chart-bar-container {
+      margin: 10px 0;
+      text-align: left;
+    }
+
+    .chart-label {
+      font-size: 12px;
+      color: #4a5568;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .chart-bar-bg {
+      background: #cbd5e0;
+      height: 14px;
+      border-radius: 7px;
+      overflow: hidden;
+    }
+
+    .chart-bar-fill {
+      height: 100%;
+      background: #48bb78;
+      width: 0%;
+      transition: width 0.8s ease-in-out;
+    }
+
+    .btn-action {
+      background: #48bb78;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+      transition: transform 0.2s;
+    }
+
+    .btn-action:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <!-- Header Controls -->
+    <div class="header">
+      <div class="hearts" id="hearts-display">❤️❤️❤️</div>
+      <div class="stage-badge" id="stage-badge">Stage 1</div>
+      <div class="score-display">Score: <span id="score">0</span></div>
+    </div>
+
+    <!-- Countdown Timer -->
+    <div class="timer-container" id="timer-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <!-- Main Dynamic Content Area -->
+    <div id="game-view"></div>
+
+    <!-- Overlay Modal for Transitions & Game Over -->
+    <div class="modal" id="modal">
+      <div class="modal-title" id="modal-title">Stage Cleared!</div>
+      <div class="modal-desc" id="modal-desc">Here is your performance summary:</div>
+      
+      <div class="stats-chart" id="stats-chart">
+        <div class="chart-bar-container">
+          <div class="chart-label">Accuracy</div>
+          <div class="chart-bar-bg"><div class="chart-bar-fill" id="accuracy-bar"></div></div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-label">Health Remaining</div>
+          <div class="chart-bar-bg"><div class="chart-bar-fill" id="health-bar"></div></div>
+        </div>
+      </div>
+
+      <button class="btn-action" id="modal-btn" onclick="handleModalAction()">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Master Data ---
+    const DAYS_DATA = [
+      { english: 'Monday', chinese: '星期一' },
+      { english: 'Tuesday', chinese: '星期二' },
+      { english: 'Wednesday', chinese: '星期三' },
+      { english: 'Thursday', chinese: '星期四' },
+      { english: 'Friday', chinese: '星期五' },
+      { english: 'Saturday', chinese: '星期六' },
+      { english: 'Sunday', chinese: '星期日' }
+    ];
+
+    // --- State Variables ---
+    let stage = 1;
+    let hearts = 3;
+    let score = 0;
+    let timerInterval = null;
+    let stageQueue = [];
+    let currentQuestionIndex = 0;
+
+    // Stage 1 State
+    let selectedEnglish = null;
+    let selectedChinese = null;
+    let stage1Matches = 0;
+    let stage1Attempts = 0;
+
+    // Stage 3 Speller State
+    let currentInput = "";
+    let currentStage3Word = "";
+    let currentStage3Chinese = "";
+
+    // DOM Elements
+    const heartsDisplay = document.getElementById('hearts-display');
+    const stageBadge = document.getElementById('stage-badge');
+    const scoreDisplay = document.getElementById('score');
+    const timerContainer = document.getElementById('timer-container');
+    const timerBar = document.getElementById('timer-bar');
+    const gameView = document.getElementById('game-view');
+    const modal = document.getElementById('modal');
+
+    // --- Utility Functions ---
+    function shuffle(array) {
+      return array.slice().sort(() => Math.random() - 0.5);
+    }
+
+    function updateStats() {
+      heartsDisplay.textContent = '❤️'.repeat(Math.max(0, hearts));
+      scoreDisplay.textContent = score;
+      stageBadge.textContent = `Stage ${stage}`;
+    }
+
+    function deductHeart() {
+      hearts--;
+      updateStats();
+      if (hearts <= 0) {
+        clearInterval(timerInterval);
+        showGameOver();
+      }
+    }
+
+    function showGameOver() {
+      document.getElementById('modal-title').textContent = "Game Over 💔";
+      document.getElementById('modal-desc').textContent = "You ran out of lives! Try again from Stage 1.";
+      document.getElementById('stats-chart').style.display = 'none';
+      document.getElementById('modal-btn').textContent = "Restart Game";
+      modal.classList.add('active');
+    }
+
+    function handleModalAction() {
+      modal.classList.remove('active');
+      if (hearts <= 0) {
+        hearts = 3;
+        score = 0;
+        stage = 1;
+        initStage1();
+      } else if (stage === 1) {
+        stage = 2;
+        initStage2();
+      } else if (stage === 2) {
+        stage = 3;
+        initStage3();
+      } else {
+        hearts = 3;
+        score = 0;
+        stage = 1;
+        initStage1();
+      }
+    }
+
+    function startTimer(seconds, onTimeout) {
+      clearInterval(timerInterval);
+      timerContainer.style.display = 'block';
+      let remaining = seconds * 10;
+      const total = remaining;
+      
+      timerBar.style.width = '100%';
+      timerBar.style.backgroundColor = '#48bb78';
+
+      timerInterval = setInterval(() => {
+        remaining--;
+        const pct = (remaining / total) * 100;
+        timerBar.style.width = `${pct}%`;
+
+        if (pct < 30) timerBar.style.backgroundColor = '#e53e3e';
+        else if (pct < 60) timerBar.style.backgroundColor = '#ecc94b';
+
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          onTimeout();
+        }
+      }, 100);
+    }
+
+    // --- STAGE 1: Classic Matching Game ---
+    function initStage1() {
+      updateStats();
+      timerContainer.style.display = 'none';
+      stage1Matches = 0;
+      stage1Attempts = 0;
+      selectedEnglish = null;
+      selectedChinese = null;
+
+      const englishList = DAYS_DATA; 
+      const chineseList = shuffle(DAYS_DATA); 
+
+      gameView.innerHTML = `
+        <div class="instructions">Match each English day to its Chinese meaning</div>
+        <div class="match-grid">
+          <div class="column" id="eng-col">
+            ${englishList.map(item => `<div class="card" data-eng="${item.english}">${item.english}</div>`).join('')}
+          </div>
+          <div class="column" id="chi-col">
+            ${chineseList.map(item => `<div class="card" data-chi="${item.chinese}">${item.chinese}</div>`).join('')}
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll('#eng-col .card').forEach(card => {
+        card.addEventListener('click', () => selectEngCard(card));
+      });
+      document.querySelectorAll('#chi-col .card').forEach(card => {
+        card.addEventListener('click', () => selectChiCard(card));
+      });
+    }
+
+    function selectEngCard(card) {
+      if (card.classList.contains('matched')) return;
+      document.querySelectorAll('#eng-col .card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedEnglish = card;
+      checkStage1Pair();
+    }
+
+    function selectChiCard(card) {
+      if (card.classList.contains('matched')) return;
+      document.querySelectorAll('#chi-col .card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedChinese = card;
+      checkStage1Pair();
+    }
+
+    function checkStage1Pair() {
+      if (selectedEnglish && selectedChinese) {
+        stage1Attempts++;
+        const engVal = selectedEnglish.dataset.eng;
+        const chiVal = selectedChinese.dataset.chi;
+
+        const target = DAYS_DATA.find(d => d.english === engVal);
+        if (target && target.chinese === chiVal) {
+          selectedEnglish.className = 'card matched';
+          selectedChinese.className = 'card matched';
+          selectedEnglish = null;
+          selectedChinese = null;
+          stage1Matches++;
+          score += 10;
+          updateStats();
+
+          if (stage1Matches === DAYS_DATA.length) {
+            setTimeout(completeStage1, 500);
+          }
+        } else {
+          const eCard = selectedEnglish;
+          const cCard = selectedChinese;
+          eCard.classList.add('wrong');
+          cCard.classList.add('wrong');
+          selectedEnglish = null;
+          selectedChinese = null;
+
+          deductHeart();
+
+          setTimeout(() => {
+            if (eCard.className.includes('wrong')) eCard.className = 'card';
+            if (cCard.className.includes('wrong')) cCard.className = 'card';
+          }, 600);
+        }
+      }
+    }
+
+    function completeStage1() {
+      const accuracy = Math.round((DAYS_DATA.length / stage1Attempts) * 100);
+      document.getElementById('modal-title').textContent = "Stage 1 Cleared! 🎉";
+      document.getElementById('modal-desc').textContent = "Great job matching all days!";
+      document.getElementById('stats-chart').style.display = 'block';
+      document.getElementById('accuracy-bar').style.width = `${accuracy}%`;
+      document.getElementById('health-bar').style.width = `${(hearts / 3) * 100}%`;
+      document.getElementById('modal-btn').textContent = "Continue to Stage 2";
+      modal.classList.add('active');
+    }
+
+    // --- STAGE 2: Multiple Choice Speed Challenge ---
+    function initStage2() {
+      updateStats();
+      stageQueue = shuffle(DAYS_DATA);
+      currentQuestionIndex = 0;
+      loadStage2Question();
+    }
+
+    function loadStage2Question() {
+      if (currentQuestionIndex >= stageQueue.length) {
+        clearInterval(timerInterval);
+        completeStage2();
+        return;
+      }
+
+      const currentItem = stageQueue[currentQuestionIndex];
+      
+      let options = [currentItem.english];
+      while (options.length < 4) {
+        const rand = DAYS_DATA[Math.floor(Math.random() * DAYS_DATA.length)].english;
+        if (!options.includes(rand)) options.push(rand);
+      }
+      options = shuffle(options);
+
+      gameView.innerHTML = `
+        <div class="instructions">Select the correct English day (5s Timer)</div>
+        <div class="prompt-card">
+          <div class="chinese-prompt">${currentItem.chinese}</div>
+        </div>
+        <div class="mc-grid">
+          ${options.map(opt => `<button class="mc-btn" onclick="handleMCSelection('${opt}', '${currentItem.english}')">${opt}</button>`).join('')}
+        </div>
+      `;
+
+      startTimer(5, () => {
+        deductHeart();
+        if (hearts > 0) nextStage2Question();
+      });
+    }
+
+    function handleMCSelection(selected, correct) {
+      clearInterval(timerInterval);
+      if (selected === correct) {
+        score += 15;
+        updateStats();
+        nextStage2Question();
+      } else {
+        deductHeart();
+        if (hearts > 0) nextStage2Question();
+      }
+    }
+
+    function nextStage2Question() {
+      currentQuestionIndex++;
+      loadStage2Question();
+    }
+
+    function completeStage2() {
+      document.getElementById('modal-title').textContent = "Stage 2 Cleared! ⚡";
+      document.getElementById('modal-desc').textContent = "Speed challenge complete!";
+      document.getElementById('stats-chart').style.display = 'none';
+      document.getElementById('modal-btn').textContent = "Continue to Stage 3";
+      modal.classList.add('active');
+    }
+
+    // --- STAGE 3: Speller & Touch Keyboard Simulator ---
+    function initStage3() {
+      updateStats();
+      stageQueue = shuffle(DAYS_DATA);
+      currentQuestionIndex = 0;
+      loadStage3Question();
+    }
+
+    function loadStage3Question() {
+      if (currentQuestionIndex >= stageQueue.length) {
+        clearInterval(timerInterval);
+        completeStage3();
+        return;
+      }
+
+      const currentItem = stageQueue[currentQuestionIndex];
+      currentStage3Word = currentItem.english.toUpperCase();
+      currentStage3Chinese = currentItem.chinese;
+      currentInput = currentStage3Word[0]; // Reveal 1st letter
+
+      renderSpellerUI();
+
+      startTimer(30, () => {
+        deductHeart();
+        if (hearts > 0) nextStage3Question();
+      });
+    }
+
+    function renderSpellerUI() {
+      const keyboardLayout = [
+        ['Q','W','E','R','T','Y','U','I','O','P'],
+        ['A','S','D','F','G','H','J','K','L'],
+        ['DEL','Z','X','C','V','B','N','M','SUB']
+      ];
+
+      let slotsHTML = '';
+      for (let i = 0; i < currentStage3Word.length; i++) {
+        const char = currentInput[i] || '';
+        slotsHTML += `<div class="letter-slot ${char ? 'filled' : ''}">${char}</div>`;
+      }
+
+      gameView.innerHTML = `
+        <div class="instructions">Spell the English day using the touch keyboard (30s)</div>
+        <div class="prompt-card" style="padding: 15px;">
+          <div class="chinese-prompt">${currentStage3Chinese}</div>
+        </div>
+        <div class="speller-display">${slotsHTML}</div>
+        <div class="keyboard">
+          ${keyboardLayout.map(row => `
+            <div class="kb-row">
+              ${row.map(key => {
+                if (key === 'DEL') return `<button class="key key-wide" onclick="handleKeyInput('DEL')">⌫</button>`;
+                if (key === 'SUB') return `<button class="key key-wide" onclick="handleKeyInput('SUB')">OK</button>`;
+                return `<button class="key" onclick="handleKeyInput('${key}')">${key}</button>`;
+              }).join('')}
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function handleKeyInput(key) {
+      if (key === 'DEL') {
+        if (currentInput.length > 1) {
+          currentInput = currentInput.slice(0, -1);
+        }
+      } else if (key === 'SUB') {
+        validateStage3Answer();
+        return;
+      } else {
+        if (currentInput.length < currentStage3Word.length) {
+          currentInput += key;
+          if (currentInput.length === currentStage3Word.length) {
+            validateStage3Answer();
+            return;
+          }
+        }
+      }
+      
+      renderSpellerUI();
+    }
+
+    function validateStage3Answer() {
+      if (currentInput === currentStage3Word) {
+        clearInterval(timerInterval);
+        score += 20;
+        updateStats();
+        nextStage3Question();
+      } else {
+        deductHeart();
+        if (hearts > 0) {
+          renderSpellerUI();
+        }
+      }
+    }
+
+    function nextStage3Question() {
+      currentQuestionIndex++;
+      loadStage3Question();
+    }
+
+    function completeStage3() {
+      document.getElementById('modal-title').textContent = "Victory! 🏆";
+      document.getElementById('modal-desc').textContent = `You completed all 3 stages with a final score of ${score}!`;
+      document.getElementById('stats-chart').style.display = 'none';
+      document.getElementById('modal-btn').textContent = "Play Again";
+      modal.classList.add('active');
+    }
+
+    // Start Game
+    initStage1();
+  </script>
+</body>
+</html>
